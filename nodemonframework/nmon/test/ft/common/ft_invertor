@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo Doing inverse test with option: "$1"
+env TEST_OPTIONS="$1" make functest
+RC=$?
+if [ $RC -eq 0 ]; then
+	echo Test inverse failed
+	exit 1
+fi
+echo Test inverse succeeded \(you shall see failure message above\)

@@ -1,0 +1,4 @@
+# If NOHWCHECK variable initialized, HW check will be skipped.
+#NOHWCHECK=yes
+#
+#MOND_ARGS=

@@ -1,0 +1,8 @@
+API
+All plugin api functions have prefix "hmp_".
+Main function in plugin MUST be called like that:
+
+$(PLUGINNAME)_process(char *param, int fd)
+
+
+All internal plugin functions should be defined as static.

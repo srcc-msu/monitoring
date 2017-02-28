@@ -1,0 +1,76 @@
+#!/bin/sh
+#
+# hybmond      Hybrid monitoring agent.
+#
+# chkconfig: 35 37 10
+# description: Hybrid monitoring agent.
+# processname: hybmond
+# pidfile: /var/run/hybmond.pid
+
+# Do not load RH compatibility interface.
+WITHOUT_RC_COMPAT=1
+
+# Source function library.
+. /etc/init.d/functions
+
+MOND=hybmond
+BIN_PREFIX=_BIN_PREFIX_
+PIDFILE=/var/run/${MOND}.pid
+LOCKFILE=/var/lock/subsys/$MOND
+RETVAL=0
+
+
+start()
+{
+    if ! echo $PATH|grep -q $BIN_PREFIX ; then
+        export PATH=$PATH:$BIN_PREFIX
+    fi
+    start_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" --expect-user root -- $MOND
+    RETVAL=$?
+    return $RETVAL
+}
+
+stop()
+{
+    stop_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" --expect-user root -- $MOND
+    RETVAL=$?
+    return $RETVAL
+}
+
+restart()
+{
+    stop
+    start
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    condstop)
+        if [ -e "$LOCKFILE" ]; then
+            stop
+        fi
+        ;;
+    condrestart)
+        if [ -e "$LOCKFILE" ]; then
+            restart
+        fi
+        ;;
+    status)
+        status --pidfile "$PIDFILE" --expect-user root -- $MOND
+        RETVAL=$?
+        ;;
+    *)
+        msg_usage "${0##*/} {start|stop|restart|condstop|condrestart|status}"
+        RETVAL=1
+esac
+
+exit $RETVAL

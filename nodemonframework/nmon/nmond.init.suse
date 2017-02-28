@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+# /etc/init.d/nmond
+#
+### BEGIN INIT INFO
+# Provides:          nmond
+# Required-Start:    $network $remote_fs
+# Required-Stop:     $network $remote_fs
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 6
+# Short-Description: Node monitoring agent.
+# Description:       Node monitoring agent.
+### END INIT INFO
+
+NMOND=nmond
+PREFIX=""
+BIN_PREFIX=_BIN_PREFIX_
+LIB_PREFIX=_LIB_PREFIX_
+NMOND_CMD=${BIN_PREFIX}/$NMOND
+LOCKFILE=/var/lock/subsys/$NMOND
+PIDFILE=/var/run/${NMOND}.pid
+CONFIGFILE=${PREFIX}/etc/${NMOND}.conf
+NMOND_ARGS="-conf $CONFIGFILE -nohwck"
+
+. /etc/rc.status
+
+# Reset status of this service
+rc_reset
+
+
+case "$1" in
+    start)
+        echo -n "Starting nmond: "
+	if ! echo $PATH|grep -q $BIN_PREFIX ; then
+		export PATH=$PATH:$BIN_PREFIX
+	fi
+	if ! echo $LD_LIBRARY_PATH|grep -q $LIB_PREFIX ; then
+		export LD_LIBRARY_PATH=$LIB_PREFIX${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+	fi
+
+	start_daemon -p $PIDFILE -f $NMOND_CMD $NMOND_ARGS
+	rc_status -v
+        ;;
+    stop)
+        echo -n "Shutting down nmond: "
+	killproc -p $PIDFILE -TERM $NMOND_CMD
+	rc_status -v
+        ;;
+    condrestart|try-restart)
+        $0 status >/dev/null &&  $0 restart
+        rc_status
+        ;;
+    restart)
+        $0 stop
+	$0 start
+        rc_status
+        ;;
+    status)
+        echo -n "Checking for service nmond: "
+	checkproc -k -p $PIDFILE $NMOND_CMD
+        if [ $? -eq 7 ]; then
+                rc_failed 3
+        fi
+        rc_status -v
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|try-restart|restart|status}"
+        exit 1
+esac
+rc_exit
